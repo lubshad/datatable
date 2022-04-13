@@ -1,5 +1,6 @@
 import 'package:datatable/presentation/components/cell.dart';
 import 'package:datatable/presentation/components/edit_data_table_controller.dart';
+import 'package:datatable/presentation/dialogs/create_table_dialog/create_table_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -17,8 +18,22 @@ class EditDataTable extends StatelessWidget {
         builder: (context, child) {
           return Scaffold(
               appBar: AppBar(
-                backgroundColor: Colors.white,
                 actions: [
+                  if (editDataTableController.columns.isNotEmpty &&
+                      editDataTableController.rows.isNotEmpty)
+                    Row(
+                      children: [
+                        IconButton(
+                            onPressed: editDataTableController.undo,
+                            icon: const Icon(Icons.undo)),
+                        IconButton(
+                            onPressed: editDataTableController.redo,
+                            icon: const Icon(Icons.redo)),
+                      ],
+                    ),
+                  IconButton(
+                      onPressed: showTableSelectionDialog,
+                      icon: const Icon(Icons.table_chart_outlined)),
                   if (editDataTableController.selectedCell != null)
                     Row(
                       children: [
@@ -30,19 +45,26 @@ class EditDataTable extends StatelessWidget {
                             child: const Text("Merge Column")),
                       ],
                     ),
-                  TextButton.icon(
-                      onPressed: editDataTableController.addRow,
-                      icon: const Icon(Icons.add),
-                      label: const Text("Add Row")),
-                  TextButton.icon(
-                      onPressed: editDataTableController.addColumn,
-                      icon: const Icon(Icons.add),
-                      label: const Text("Add Column")),
+                  if (editDataTableController.columns.isNotEmpty &&
+                      editDataTableController.rows.isNotEmpty)
+                    Row(
+                      children: [
+                        TextButton.icon(
+                            onPressed: editDataTableController.addRow,
+                            icon: const Icon(Icons.add),
+                            label: const Text("Add Row")),
+                        TextButton.icon(
+                            onPressed: editDataTableController.addColumn,
+                            icon: const Icon(Icons.add),
+                            label: const Text("Add Column")),
+                      ],
+                    )
                 ],
               ),
               body: Center(
                 child: SizedBox(
-                  width: editDataTableController.tableWidth + 5,
+                  width: editDataTableController.tableWidth,
+                  height: editDataTableController.tableHeight,
                   child: Stack(
                     children: editDataTableController.cells
                         .where((element) => (element["row_merged"] != true))
@@ -53,5 +75,9 @@ class EditDataTable extends StatelessWidget {
                 ),
               ));
         });
+  }
+
+  void showTableSelectionDialog() {
+    Get.dialog(const CreateTableDialog());
   }
 }

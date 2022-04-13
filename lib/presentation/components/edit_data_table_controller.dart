@@ -1,84 +1,9 @@
 import 'package:flutter/material.dart';
 
 class EditDataTableController extends ChangeNotifier {
-  List<Map<String, dynamic>> cells = [
-    {
-      'value': 'cell 0',
-    },
-    {
-      'value': 'cell 1',
-    },
-    {
-      'value': 'cell 2',
-    },
-    {
-      'value': 'cell 3',
-    },
-    {
-      'value': 'cell 4',
-    },
-    {
-      'value': 'cell 5',
-    },
-    {
-      'value': 'cell 6',
-    },
-    {
-      'value': 'cell 7',
-    },
-    {
-      'value': 'cell 8',
-    },
-    {
-      'value': 'cell 9',
-    },
-    {
-      'value': 'cell 10',
-    },
-    {
-      'value': 'cell 11',
-    },
-    {
-      'value': 'cell 12',
-    },
-    {
-      'value': 'cell 13',
-    },
-    {
-      'value': 'cell 14',
-    },
-    {
-      'value': 'cell 15',
-    },
-  ];
-  List<Map<String, dynamic>> columns = [
-    {
-      'width': 200,
-    },
-    {
-      'width': 200,
-    },
-    {
-      'width': 200,
-    },
-    {
-      'width': 200,
-    },
-  ];
-  List<Map<String, dynamic>> rows = [
-    {
-      'height': 100,
-    },
-    {
-      'height': 100,
-    },
-    {
-      'height': 100,
-    },
-    {
-      'height': 100,
-    },
-  ];
+  List<Map<String, dynamic>> cells = [];
+  List<Map<String, dynamic>> columns = [];
+  List<Map<String, dynamic>> rows = [];
 
   Map<String, dynamic>? selectedCell;
 
@@ -90,7 +15,7 @@ class EditDataTableController extends ChangeNotifier {
 
   void addRow() {
     rows.add({
-      "height": 100,
+      "height": 50,
     });
     int totalNumberOfCells = columns.length * rows.length;
     int numberOfCellsToAdd = totalNumberOfCells - cells.length;
@@ -119,7 +44,7 @@ class EditDataTableController extends ChangeNotifier {
       index++;
     }
     columns.add({
-      'width': 200,
+      'width': 100,
     });
     notifyListeners();
   }
@@ -191,6 +116,11 @@ class EditDataTableController extends ChangeNotifier {
       return;
     }
 
+    undoStack.add({
+      "type": "merge",
+      "cells": cells.map((e) => Map<String, dynamic>.from(e)).toList(),
+    });
+
     if (mergedCollums.isNotEmpty) {
       for (int i = 1; i < mergedCollums.length + 1; i++) {
         cells[(nextCell) + i * (columns.length)]["column_merged"] = true;
@@ -224,6 +154,11 @@ class EditDataTableController extends ChangeNotifier {
     if (width != nextCellWidth || cells[nextCell]["row_merged"] == true) {
       return;
     }
+
+    undoStack.add({
+      "type": "merge",
+      "cells": cells.map((e) => Map<String, dynamic>.from(e)).toList(),
+    });
 
     if (mergedRows.isNotEmpty) {
       for (int i = 1; i < mergedRows.length + 1; i++) {
@@ -325,5 +260,58 @@ class EditDataTableController extends ChangeNotifier {
       leftPosition += columns[i]['width'].toDouble();
     }
     return leftPosition;
+  }
+
+  void createTable({required int newRows, required int newColumns}) {
+    cells.clear();
+    columns.clear();
+    rows.clear();
+
+    int totalCells = newRows * newColumns;
+
+    for (int i = 0; i < totalCells; i++) {
+      cells.add({"value": "cell ${i + 1}"});
+    }
+
+    for (int i = 0; i < newColumns; i++) {
+      columns.add({"width": 100});
+    }
+
+    for (int i = 0; i < newRows; i++) {
+      rows.add({"height": 50});
+    }
+    notifyListeners();
+  }
+
+  List<Map<String, dynamic>> undoStack = [];
+
+  List<Map<String, dynamic>> redoStack = [];
+
+  void undo() {
+    print(undoStack);
+    if (undoStack.isNotEmpty) {
+      Map<String, dynamic> lastAction = undoStack.last;
+      handleLastAction(lastAction);
+      redoStack.add(lastAction);
+      undoStack.removeLast();
+    }
+  }
+
+  void redo() {
+    print(redoStack);
+    if (redoStack.isNotEmpty) {
+      Map<String, dynamic> lastAction = redoStack.last;
+      handleLastAction(lastAction);
+      undoStack.add(lastAction);
+      redoStack.removeLast();
+    }
+  }
+
+  void handleLastAction(Map<String, dynamic> lastAction) {
+    switch (lastAction["type"]) {
+      case "merge":
+        cells = lastAction["cells"];
+        notifyListeners();
+    }
   }
 }

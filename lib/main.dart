@@ -1,4 +1,5 @@
 import 'package:datatable/presentation/components/edit_data_table.dart';
+import 'package:datatable/presentation/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -13,10 +14,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
-      theme: ThemeData(
-        platform: TargetPlatform.windows,
-        primarySwatch: Colors.blue,
-      ),
+      theme: AppTheme.theme,
       home: const EditDataTable(),
     );
   }
