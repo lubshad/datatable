@@ -138,8 +138,7 @@ class EditDataTableController extends ChangeNotifier {
 
     List<Map<String, dynamic>> mergedCells =
         findMergedCellsColumn(currentSelection);
-    List<Map<String, dynamic>> mergedRows =
-        findMergeCellsRow(currentSelection);
+    List<Map<String, dynamic>> mergedRows = findMergeCellsRow(currentSelection);
 
     double width = findWidth(currentSelection);
 
@@ -319,7 +318,19 @@ class EditDataTableController extends ChangeNotifier {
     int columnIndex = findColumn(selectedCell!);
 
     List<Map<String, dynamic>> mergedRows = findMergeCellsRow(selectedCell!);
-    
+    List<Map<String, dynamic>> mergedColumns =
+        findMergedCellsColumn(selectedCell!);
+
+    if (mergedColumns.isNotEmpty) {
+      for (int i = 1; i < mergedRows.length + 1; i++) {
+        cells[cells.indexOf(mergedColumns.last) + i]["column_merged"] = false;
+        cells[cells.indexOf(mergedColumns.last) + i]["row_merged"] = true;
+      }
+      mergedColumns.last["column_merged"] = false;
+      notifyListeners();
+      return;
+    }
+
     int insersionIndex = (rowIndex + 1) * columns.length;
     int numberOfCellsToAdd = columns.length;
     int underSelectedCellIndex = numberOfCellsToAdd - 1 - columnIndex;
@@ -345,9 +356,22 @@ class EditDataTableController extends ChangeNotifier {
     int columnEnding = findColumnEnding(selectedCell!);
     int rowIndex = findRow(selectedCell!);
 
-    List<Map<String, dynamic>> mergedCellsColumn =
+    List<Map<String, dynamic>> mergedColumns =
         findMergedCellsColumn(selectedCell!);
-    
+
+    List<Map<String, dynamic>> mergedRows = findMergeCellsRow(selectedCell!);
+
+    if (mergedRows.isNotEmpty) {
+      mergedRows.last["row_merged"] = false;
+      for (int i = columns.length;
+          i < ((mergedColumns.length+1) * columns.length);
+          i += columns.length) {
+        cells[cells.indexOf(mergedRows.last) + i]["row_merged"] = false;
+        cells[cells.indexOf(mergedRows.last) + i]["column_merged"] = true;
+      }
+      notifyListeners();
+      return;
+    }
 
     List<int> newColumnCellIndexes = [];
     for (int i = columnIndex + 1;
@@ -359,9 +383,13 @@ class EditDataTableController extends ChangeNotifier {
     int index = 0;
 
     for (int i = 0; i < newColumnCellIndexes.length; i++) {
-      bool columnMerged =  i > rowIndex && i < (rowIndex + mergedCellsColumn.length+1);
-      cells.insert(newColumnCellIndexes[i] + index,
-          {'value': '', "row_merged": rowIndex != i, "column_merged": columnMerged});
+      bool columnMerged =
+          i > rowIndex && i < (rowIndex + mergedColumns.length + 1);
+      cells.insert(newColumnCellIndexes[i] + index, {
+        'value': '',
+        "row_merged": rowIndex != i,
+        "column_merged": columnMerged
+      });
       index++;
     }
 
