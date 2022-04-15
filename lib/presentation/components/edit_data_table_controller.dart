@@ -62,7 +62,7 @@ class EditDataTableController extends ChangeNotifier {
   }
 
   void changeHeight(DragUpdateDetails details, Map<String, dynamic> cell) {
-    List<Map<String, dynamic>> mergedCells = findMergerCellsColumn(cell);
+    List<Map<String, dynamic>> mergedCells = findMergedCellsColumn(cell);
     int rowIndex = findRow(cell);
     final double height = details.delta.dy;
     if (mergedCells.isNotEmpty) {
@@ -75,7 +75,7 @@ class EditDataTableController extends ChangeNotifier {
   }
 
   void changeWidth(DragUpdateDetails details, Map<String, dynamic> cell) {
-    List<Map<String, dynamic>> mergedCells = findMergerCellsRow(cell);
+    List<Map<String, dynamic>> mergedCells = findMergedCellsRow(cell);
     int columnIndex = findColumn(cell);
     final double width = details.delta.dx;
     if (mergedCells.isNotEmpty) {
@@ -98,9 +98,9 @@ class EditDataTableController extends ChangeNotifier {
     int rowEnding = findRowEnding(currentSelection);
 
     List<Map<String, dynamic>> mergedCells =
-        findMergerCellsRow(currentSelection);
+        findMergedCellsRow(currentSelection);
     List<Map<String, dynamic>> mergedCollums =
-        findMergerCellsColumn(currentSelection);
+        findMergedCellsColumn(currentSelection);
 
     double height = findHeight(currentSelection);
 
@@ -137,9 +137,9 @@ class EditDataTableController extends ChangeNotifier {
     int columnEnding = findColumnEnding(currentSelection);
 
     List<Map<String, dynamic>> mergedCells =
-        findMergerCellsColumn(currentSelection);
+        findMergedCellsColumn(currentSelection);
     List<Map<String, dynamic>> mergedRows =
-        findMergerCellsRow(currentSelection);
+        findMergedCellsRow(currentSelection);
 
     double width = findWidth(currentSelection);
 
@@ -174,7 +174,7 @@ class EditDataTableController extends ChangeNotifier {
   findWidth(Map<String, dynamic> cell) {
     int columnIndex = findColumn(cell);
     double width = columns[columnIndex]['width'].toDouble();
-    List<Map<String, dynamic>> mergedCells = findMergerCellsRow(cell);
+    List<Map<String, dynamic>> mergedCells = findMergedCellsRow(cell);
     for (Map<String, dynamic> mergedCell in mergedCells) {
       int mergedCellColumIndex = findColumn(mergedCell);
       width += columns[mergedCellColumIndex]['width'].toDouble();
@@ -185,7 +185,7 @@ class EditDataTableController extends ChangeNotifier {
   findHeight(Map<String, dynamic> cell) {
     int rowIndex = findRow(cell);
     double height = rows[rowIndex]['height'].toDouble();
-    List<Map<String, dynamic>> mergedCells = findMergerCellsColumn(cell);
+    List<Map<String, dynamic>> mergedCells = findMergedCellsColumn(cell);
     for (Map<String, dynamic> mergedCell in mergedCells) {
       int mergedCellRowIndex = findRow(mergedCell);
       height += rows[mergedCellRowIndex]['height'].toDouble();
@@ -215,7 +215,7 @@ class EditDataTableController extends ChangeNotifier {
     return columnEnding - 1;
   }
 
-  List<Map<String, dynamic>> findMergerCellsRow(Map<String, dynamic> cell) {
+  List<Map<String, dynamic>> findMergedCellsRow(Map<String, dynamic> cell) {
     int rowEnding = findRowEnding(cell);
     List<Map<String, dynamic>> mergedCells = [];
     for (int i = (cells.indexOf(cell) + 1); i < rowEnding + 1; i++) {
@@ -228,7 +228,7 @@ class EditDataTableController extends ChangeNotifier {
     return mergedCells;
   }
 
-  List<Map<String, dynamic>> findMergerCellsColumn(Map<String, dynamic> cell) {
+  List<Map<String, dynamic>> findMergedCellsColumn(Map<String, dynamic> cell) {
     int columnEnding = findColumnEnding(cell);
 
     List<Map<String, dynamic>> mergedCells = [];
@@ -318,13 +318,10 @@ class EditDataTableController extends ChangeNotifier {
     int rowIndex = findRow(selectedCell!);
     int columnIndex = findColumn(selectedCell!);
 
-    List<Map<String, dynamic>> mergedRows = findMergerCellsRow(selectedCell!);
-    rows.insert(rowIndex + 1, {
-      "height": 50,
-    });
+    List<Map<String, dynamic>> mergedRows = findMergedCellsRow(selectedCell!);
+    
     int insersionIndex = (rowIndex + 1) * columns.length;
-    int totalNumberOfCells = columns.length * rows.length;
-    int numberOfCellsToAdd = totalNumberOfCells - cells.length;
+    int numberOfCellsToAdd = rows.length;
     int underSelectedCellIndex = numberOfCellsToAdd - 1 - columnIndex;
     for (int i = 0; i < numberOfCellsToAdd; i++) {
       // bool isRowMerged = underSelectedCellIndex < mergedRows.length;
@@ -337,6 +334,11 @@ class EditDataTableController extends ChangeNotifier {
         "row_merged": rowMerged
       });
     }
+
+    rows.insert(rowIndex + 1, {
+      "height": 50,
+    });
+
     notifyListeners();
   }
 
@@ -344,31 +346,31 @@ class EditDataTableController extends ChangeNotifier {
     int columnIndex = findColumn(selectedCell!);
     int columnEnding = findColumnEnding(selectedCell!);
     int rowIndex = findRow(selectedCell!);
-    print(columnIndex);
 
-    print(columnEnding);
-
-    // List<Map<String, dynamic>> mergedCellsColumn =
-    //     findMergerCellsColumn(selectedCell!);
-
+    List<Map<String, dynamic>> mergedCellsColumn =
+        findMergedCellsColumn(selectedCell!);
 
     List<int> newColumnCellIndexes = [];
-    for (int i = columnIndex + 1; i < columnEnding + columns.length; i += columns.length) {
+    for (int i = columnIndex + 1;
+        i < columnEnding + columns.length;
+        i += columns.length) {
       newColumnCellIndexes.add(i);
     }
-    print(newColumnCellIndexes);
-    
+
     int index = 0;
     
+
     for (int i = 0; i < newColumnCellIndexes.length; i++) {
+      bool columnMerged = i > rowIndex && i < (rowIndex + mergedCellsColumn.length+1);
       cells.insert(newColumnCellIndexes[i] + index,
-          {'value': '', "row_merged": rowIndex != i, "column_merged": false});
+          {'value': '', "row_merged": rowIndex != i, "column_merged": columnMerged});
       index++;
     }
 
     columns.insert(columnIndex + 1, {
       "width": 100,
     });
+
     notifyListeners();
   }
 }
