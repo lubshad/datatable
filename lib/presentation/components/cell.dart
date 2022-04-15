@@ -27,18 +27,15 @@ class Cell extends StatelessWidget {
                 ),
               ),
               child: Builder(builder: (context) {
-                return Focus(
-                  onFocusChange: (value) =>
-                      editDataTableController.selectCell(cell),
-                  child: TextField(
-                      expands: true,
-                      maxLines: null,
-                      controller:
-                          TextEditingController(text: cell["value"].toString()),
-                      onChanged: (value) {
-                        cell["value"] = value;
-                      }),
-                );
+                return TextField(
+                    onTap: () => editDataTableController.selectCell(cell),
+                    expands: true,
+                    maxLines: null,
+                    controller:
+                        TextEditingController(text: cell["value"].toString()),
+                    onChanged: (value) {
+                      cell["value"] = value;
+                    });
               }),
             ),
             Positioned(

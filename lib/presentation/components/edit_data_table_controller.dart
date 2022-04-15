@@ -28,8 +28,6 @@ class EditDataTableController extends ChangeNotifier {
   }
 
   void addColumn() {
-    // int totalNumberOfCells = columns.length * rows.length;
-    // int numberOfCellsToAdd = totalNumberOfCells - cells.length;
     List<int> newColumnCellIndexes = [];
     for (int i = 1; i != cells.length + 1; i++) {
       if (i % columns.length == 0) {
@@ -342,5 +340,35 @@ class EditDataTableController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void splitColumn() {}
+  void splitColumn() {
+    int columnIndex = findColumn(selectedCell!);
+    int columnEnding = findColumnEnding(selectedCell!);
+    int rowIndex = findRow(selectedCell!);
+    print(columnIndex);
+
+    print(columnEnding);
+
+    // List<Map<String, dynamic>> mergedCellsColumn =
+    //     findMergerCellsColumn(selectedCell!);
+
+
+    List<int> newColumnCellIndexes = [];
+    for (int i = columnIndex + 1; i < columnEnding + columns.length; i += columns.length) {
+      newColumnCellIndexes.add(i);
+    }
+    print(newColumnCellIndexes);
+    
+    int index = 0;
+    
+    for (int i = 0; i < newColumnCellIndexes.length; i++) {
+      cells.insert(newColumnCellIndexes[i] + index,
+          {'value': '', "row_merged": rowIndex != i, "column_merged": false});
+      index++;
+    }
+
+    columns.insert(columnIndex + 1, {
+      "width": 100,
+    });
+    notifyListeners();
+  }
 }
